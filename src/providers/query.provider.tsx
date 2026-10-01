@@ -22,13 +22,13 @@ let browserQueryClient: QueryClient | undefined;
 function getQueryClient() {
   if (environmentManager.isServer()) {
     return makeQueryClient();
-  } else {
-    if (!browserQueryClient) {
-      browserQueryClient = makeQueryClient();
-    }
-
-    return browserQueryClient;
   }
+
+  if (!browserQueryClient) {
+    browserQueryClient = makeQueryClient();
+  }
+
+  return browserQueryClient;
 }
 
 export default function QueryProvider({ children }: { children: ReactNode }) {

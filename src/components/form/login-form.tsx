@@ -246,13 +246,15 @@ export default function LoginForm() {
           </FieldGroup>
         </form>
 
-        <FieldGroup className="mt-6 gap-5">
-          <FieldSeparator>Or continue with</FieldSeparator>
+        {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() && (
+          <FieldGroup className="mt-6 gap-5">
+            <FieldSeparator>Or continue with</FieldSeparator>
 
-          <Field>
-            <GoogleLoginComponent />
-          </Field>
-        </FieldGroup>
+            <Field>
+              <GoogleLoginComponent />
+            </Field>
+          </FieldGroup>
+        )}
       </CardContent>
     </Card>
   );
