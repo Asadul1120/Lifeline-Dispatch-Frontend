@@ -1,17 +1,30 @@
 import apiClient from "@/lib/apiClient";
+import {
+  LoginPayload,
+  RegisterPayload,
+  VerifyEmailPayload,
+} from "@/types/auth.type";
 
-export function userLogin(payload: { email: string; password: string }) {
+export const userRegister = (payload: RegisterPayload) => {
+  return apiClient("/auth/register", { method: "POST", body: payload });
+};
+
+export const emailVerification = (payload: VerifyEmailPayload) => {
+  return apiClient("/auth/verify-email", { method: "POST", body: payload });
+};
+
+export const userLogin = (payload: LoginPayload) => {
   return apiClient("/auth/login", { method: "POST", body: payload });
-}
+};
 
-export function googleOAuth(payload: { idToken: string }) {
+export const googleOAuth = (payload: { idToken: string }) => {
   return apiClient("/auth/google", { method: "POST", body: payload });
-}
+};
 
-export function userLogout() {
+export const userLogout = () => {
   return apiClient("/auth/logout", { method: "POST" });
-}
+};
 
-export function getMe() {
+export const getMe = () => {
   return apiClient("/auth/me");
-}
+};
