@@ -26,5 +26,5 @@ export const userLogout = () => {
 };
 
 export const getMe = () => {
-  return apiClient("/auth/me");
+  return apiClient("/user/me" , { method: "GET" });
 };
