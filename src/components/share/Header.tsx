@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
   HeartPulse,
@@ -10,82 +9,41 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useGetMe, useLogout } from "@/hooks";
-import { getMessage } from "@/lib/utils";
 
 const routes = [
   { name: "Home", url: "/" },
   { name: "About us", url: "/about-us" },
 ];
 
-type HeaderUser = {
-  name: string;
-  email: string;
-};
-
-function getHeaderUser(value: unknown): HeaderUser | null {
-  if (!value || typeof value !== "object") return null;
-
-  const record = value as Record<string, unknown>;
-
-  if (typeof record.name === "string" && typeof record.email === "string") {
-    return {
-      name: record.name,
-      email: record.email,
-    };
-  }
-
-  return getHeaderUser(record.data) ?? getHeaderUser(record.user);
-}
-
 export default function Header() {
   const pathname = usePathname();
-  const router = useRouter();
-  const queryClient = useQueryClient();
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isHandlingLogout, setIsHandlingLogout] = useState(false);
 
   const { data, isLoading } = useGetMe();
-  const { mutateAsync: logout, isPending: isLoggingOut } = useLogout();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
-  const user = getHeaderUser(data);
-  const isBusy = isLoggingOut || isHandlingLogout;
+  const handleLogout = () => {
+    if (isLoggingOut) return;
 
-  const handleLogout = async () => {
-    if (isBusy) return;
-
-    setIsHandlingLogout(true);
-
-    try {
-      const response = await logout();
-
-      // Prevent an older user request from restoring cached user data.
-      await queryClient.cancelQueries({
-        queryKey: ["user"],
-        exact: true,
-      });
-
-      // Immediately update components using this query.
-      queryClient.setQueryData(["user"], null);
-
-      setIsMenuOpen(false);
-
-      toast.success(getMessage(response, "Logout successful."));
-
-      router.replace("/");
-      router.refresh();
-    } catch (error) {
-      toast.error(getMessage(error, "Logout failed. Please try again."));
-    } finally {
-      setIsHandlingLogout(false);
-    }
+    logout(undefined, {
+      onSuccess: async (res) => {
+        setIsMenuOpen(false);
+        toast.success(res?.message || "You have been logged out successfully.");
+      },
+      onError: (err) => {
+        toast.error(
+          err?.message ||
+            "An error occurred while logging out. Please try again.",
+        );
+      },
+    });
   };
 
   const authActions = isLoading ? (
@@ -96,7 +54,7 @@ export default function Header() {
       <Spinner className="size-5 text-emerald-700" />
       <span className="sr-only">Loading account…</span>
     </div>
-  ) : user ? (
+  ) : data ? (
     <>
       <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 md:hidden lg:flex">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
@@ -104,25 +62,25 @@ export default function Header() {
         </span>
 
         <span className="truncate text-sm font-medium text-slate-700 lg:max-w-32">
-          {user.name || "Account"}
+          {data.data.name || "Account"}
         </span>
       </div>
 
       <Button
         type="button"
         variant="outline"
-        disabled={isBusy}
-        aria-busy={isBusy}
-        onClick={() => void handleLogout()}
+        disabled={isLoggingOut}
+        aria-busy={isLoggingOut}
+        onClick={handleLogout}
         className="h-10 w-full rounded-xl border-slate-200 px-4 text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 md:w-auto"
       >
-        {isBusy ? (
+        {isLoggingOut ? (
           <Spinner className="size-4" />
         ) : (
           <LogOut aria-hidden="true" className="size-4" />
         )}
 
-        {isBusy ? "Leaving…" : "Logout"}
+        {isLoggingOut ? "Leaving…" : "Logout"}
       </Button>
     </>
   ) : (
