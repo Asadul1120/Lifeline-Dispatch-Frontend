@@ -1,3 +1,5 @@
+import { Role } from "@/types";
+
 export { cn } from "cn";
 
 
@@ -22,4 +24,19 @@ export function getMessage(value: unknown, fallback: string): string {
     source?.response?.data?.message ?? source?.data?.message ?? source?.message;
 
   return typeof message === "string" && message.trim() ? message : fallback;
+}
+
+
+
+
+
+export function getDashboardRoute(role: Role): string {
+  switch (role) {
+    case "ADMIN":
+      return "/dashboard/admin";
+    case "DRIVER":
+      return "/dashboard/driver";
+    default:
+      return "/dashboard/patient";
+  }
 }

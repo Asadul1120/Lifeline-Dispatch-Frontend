@@ -6,7 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 
-import { getMessage } from "@/lib/utils";
+import { getDashboardRoute, getMessage } from "@/lib/utils";
 import { loginSchema } from "@/validation";
 import { useLogin } from "@/hooks";
 
@@ -50,7 +50,7 @@ export default function LoginForm() {
       login(loginData, {
         onSuccess: (response) => {
           toast.success(getMessage(response, "Login successful."));
-          router.push("/");
+          router.push(getDashboardRoute(response.data.role));
         },
         onError: (error) => {
           toast.error(getMessage(error, "Login failed. Please try again."));

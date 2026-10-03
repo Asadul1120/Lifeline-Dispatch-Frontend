@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { useGoogleOAuth } from "@/hooks/auth.hook";
-import { getMessage } from "@/lib/utils";
+import { getDashboardRoute, getMessage } from "@/lib/utils";
 
 import { Spinner } from "../../ui/spinner";
 
@@ -54,7 +54,7 @@ export default function GoogleLoginComponent() {
         onSuccess: (response) => {
           toast.success(getMessage(response, "Google login successful."));
 
-          router.push("/");
+          router.push(getDashboardRoute(response.data.role));
         },
         onError: (error) => {
           toast.error(
