@@ -1,5 +1,17 @@
 export { cn } from "cn";
-import type { MessageSource } from "@/types/api";
+
+
+export type MessageSource = {
+  message?: unknown;
+  data?: {
+    message?: unknown;
+  } | null;
+  response?: {
+    data?: {
+      message?: unknown;
+    } | null;
+  } | null;
+};
 
 export function getMessage(value: unknown, fallback: string): string {
   if (typeof value === "string") {
