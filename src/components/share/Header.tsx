@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useGetMe, useLogout } from "@/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 
 const routes = [
   { name: "Home", url: "/" },
@@ -26,8 +27,12 @@ export default function Header() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const queryClient = useQueryClient();
+
   const { data, isLoading } = useGetMe();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
+
+  console.log("Header data:", data);
 
   const handleLogout = () => {
     if (isLoggingOut) return;

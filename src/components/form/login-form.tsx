@@ -5,9 +5,10 @@ import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { useLogin } from "@/hooks/auth.hook";
+
 import { getMessage } from "@/lib/utils";
 import { loginSchema } from "@/validation";
+import { useLogin } from "@/hooks";
 
 import GoogleLoginComponent from "../modules/google-login/GoogleLogin";
 import { Button } from "../ui/button";

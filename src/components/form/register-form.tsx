@@ -19,13 +19,16 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
+  FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { useRegister } from "@/hooks/auth.hook";
+import { useRegister } from "@/hooks";
 import { getMessage } from "@/lib/utils";
 import type { RegisterPayload } from "@/types/auth.type";
 import { registerSchema } from "@/validation";
+import GoogleLoginComponent from "../modules/google-login/GoogleLogin";
+
 
 const fields = [
   {
@@ -258,6 +261,18 @@ export default function RegisterForm() {
             }}
           </form.Subscribe>
         </FieldGroup>
+
+         {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim() && (
+        <FieldGroup className="mt-7 gap-5">
+          <FieldSeparator className="text-xs text-slate-400">
+            Or continue with
+          </FieldSeparator>
+
+          <Field>
+            <GoogleLoginComponent />
+          </Field>
+        </FieldGroup>
+      )}
       </form>
     </div>
   );
