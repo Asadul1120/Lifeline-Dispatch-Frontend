@@ -2,7 +2,9 @@
 
 import {
   ArrowRight,
+  ChevronDown,
   HeartPulse,
+  LayoutDashboard,
   LogOut,
   Menu,
   UserRound,
@@ -10,13 +12,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useGetMe, useLogout } from "@/hooks";
-import { useQueryClient } from "@tanstack/react-query";
+import { getDashboardRoute } from "@/lib/utils";
 
 const routes = [
   { name: "Home", url: "/" },
@@ -26,20 +28,46 @@ const routes = [
 export default function Header() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const queryClient = useQueryClient();
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading } = useGetMe();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
-  console.log("Header data:", data);
+  const user = data?.data;
+  const dashboardUrl = user?.role ? getDashboardRoute(user.role) : "/login";
+
+  useEffect(() => {
+    if (!isAccountOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!accountRef.current?.contains(event.target as Node)) {
+        setIsAccountOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsAccountOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isAccountOpen]);
 
   const handleLogout = () => {
     if (isLoggingOut) return;
 
     logout(undefined, {
-      onSuccess: async (res) => {
+      onSuccess: (res) => {
         setIsMenuOpen(false);
+        setIsAccountOpen(false);
         toast.success(res?.message || "You have been logged out successfully.");
       },
       onError: (err) => {
@@ -50,54 +78,6 @@ export default function Header() {
       },
     });
   };
-
-  const authActions = isLoading ? (
-    <div
-      role="status"
-      className="flex h-10 w-full items-center justify-center md:w-24"
-    >
-      <Spinner className="size-5 text-emerald-700" />
-      <span className="sr-only">Loading account…</span>
-    </div>
-  ) : data ? (
-    <>
-      <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 md:hidden lg:flex">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-          <UserRound aria-hidden="true" className="size-4" />
-        </span>
-
-        <span className="truncate text-sm font-medium text-slate-700 lg:max-w-32">
-          {data.data.name || "Account"}
-        </span>
-      </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        disabled={isLoggingOut}
-        aria-busy={isLoggingOut}
-        onClick={handleLogout}
-        className="h-10 w-full rounded-xl border-slate-200 px-4 text-slate-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 md:w-auto"
-      >
-        {isLoggingOut ? (
-          <Spinner className="size-4" />
-        ) : (
-          <LogOut aria-hidden="true" className="size-4" />
-        )}
-
-        {isLoggingOut ? "Leaving…" : "Logout"}
-      </Button>
-    </>
-  ) : (
-    <Button
-      render={<Link href="/login" onClick={() => setIsMenuOpen(false)} />}
-      nativeButton={false}
-      className="h-10 w-full rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800 focus-visible:ring-emerald-500/30 md:w-auto"
-    >
-      Sign in
-      <ArrowRight aria-hidden="true" className="size-4" />
-    </Button>
-  );
 
   return (
     <header
@@ -123,7 +103,6 @@ export default function Header() {
             <span className="text-lg font-bold leading-tight tracking-tight text-slate-900">
               Lifeline
             </span>
-
             <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
               Dispatch
             </span>
@@ -160,13 +139,148 @@ export default function Header() {
             })}
           </ul>
 
-          <div className="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 md:hidden">
-            {authActions}
+          {/* Mobile account options */}
+          <div className="mt-4 flex flex-col gap-2 border-t border-slate-200 pt-4 md:hidden">
+            {isLoading ? (
+              <Spinner className="mx-auto size-5 text-emerald-700" />
+            ) : user ? (
+              <>
+                <p className="px-3 py-2 text-sm font-semibold text-slate-800">
+                  {user.name || "Account"}
+                </p>
+
+                <Link
+                  href={dashboardUrl}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  Dashboard
+                </Link>
+
+                {user.role === "PATIENT" && (
+                  <Link
+                    href="/dashboard/patient/profile"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    Profile
+                  </Link>
+                )}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isLoggingOut}
+                  onClick={handleLogout}
+                  className="mt-1 w-full rounded-xl"
+                >
+                  <LogOut aria-hidden="true" className="size-4" />
+                  {isLoggingOut ? "Leaving…" : "Logout"}
+                </Button>
+              </>
+            ) : (
+              <Button
+                render={
+                  <Link href="/login" onClick={() => setIsMenuOpen(false)} />
+                }
+                nativeButton={false}
+                className="w-full rounded-xl bg-emerald-700 text-white hover:bg-emerald-800"
+              >
+                Sign in
+                <ArrowRight aria-hidden="true" className="size-4" />
+              </Button>
+            )}
           </div>
         </nav>
 
-        <div className="hidden shrink-0 items-center gap-2 md:flex">
-          {authActions}
+        {/* Desktop account dropdown */}
+        <div className="hidden shrink-0 md:flex">
+          {isLoading ? (
+            <div
+              role="status"
+              className="flex h-10 w-24 items-center justify-center"
+            >
+              <Spinner className="size-5 text-emerald-700" />
+              <span className="sr-only">Loading account…</span>
+            </div>
+          ) : user ? (
+            <div ref={accountRef} className="relative">
+              <button
+                type="button"
+                aria-expanded={isAccountOpen}
+                aria-controls="account-dropdown"
+                onClick={() => setIsAccountOpen((current) => !current)}
+                className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition-colors hover:border-emerald-200 hover:bg-emerald-50"
+              >
+                <span className="flex size-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                  <UserRound aria-hidden="true" className="size-4" />
+                </span>
+
+                <span className="max-w-32 truncate">
+                  {user.name || "Account"}
+                </span>
+
+                <ChevronDown
+                  aria-hidden="true"
+                  className={`size-4 transition-transform ${
+                    isAccountOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {isAccountOpen && (
+                <div
+                  id="account-dropdown"
+                  className="absolute right-0 top-full z-50 mt-2 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl"
+                >
+                  <p className="truncate border-b border-slate-100 px-3 py-2 text-sm font-semibold text-slate-900">
+                    {user.name || "Account"}
+                  </p>
+
+                  <Link
+                    href={dashboardUrl}
+                    onClick={() => setIsAccountOpen(false)}
+                    className="mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
+                  >
+                    <LayoutDashboard aria-hidden="true" className="size-4" />
+                    Dashboard
+                  </Link>
+
+                  {user.role === "PATIENT" && (
+                    <Link
+                      href="/dashboard/patient/profile"
+                      onClick={() => setIsAccountOpen(false)}
+                      className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
+                    >
+                      <UserRound aria-hidden="true" className="size-4" />
+                      Profile
+                    </Link>
+                  )}
+
+                  <div className="my-1 border-t border-slate-100" />
+
+                  <button
+                    type="button"
+                    disabled={isLoggingOut}
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  >
+                    <LogOut aria-hidden="true" className="size-4" />
+                    {isLoggingOut ? "Leaving…" : "Logout"}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Button
+              render={<Link href="/login" />}
+              nativeButton={false}
+              className="h-10 rounded-xl bg-emerald-700 px-5 text-white hover:bg-emerald-800"
+            >
+              Sign in
+              <ArrowRight aria-hidden="true" className="size-4" />
+            </Button>
+          )}
         </div>
 
         <Button
