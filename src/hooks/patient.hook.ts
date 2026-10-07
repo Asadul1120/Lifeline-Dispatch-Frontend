@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   cancelEmergencyRequest,
-  createPayment,
   createEmergencyRequest,
+  createPayment,
   getEmergencyRequest,
   getMyEmergencyRequests,
   getMyPayments,
@@ -28,6 +28,12 @@ export const useMyEmergencyRequests = (filters?: EmergencyRequestFilters) => {
     queryKey: ["emergency-requests", filters],
     queryFn: () => getMyEmergencyRequests(filters),
     retry: false,
+
+    staleTime: 0,
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 };
 
@@ -37,23 +43,44 @@ export const useEmergencyRequest = (requestId: string) => {
     queryFn: () => getEmergencyRequest(requestId),
     enabled: Boolean(requestId),
     retry: false,
+
+    staleTime: 0,
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 };
 
 export const useCancelEmergencyRequest = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: cancelEmergencyRequest,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["emergency-requests"] }),
+    onSuccess: async (_response, requestId) => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["emergency-requests"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["emergency-request", requestId],
+          exact: true,
+        }),
+      ]);
+    },
   });
 };
 
 export const useCreatePayment = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: createPayment,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["payments"] }),
+    onSuccess: () => {
+      return queryClient.invalidateQueries({
+        queryKey: ["payments"],
+      });
+    },
   });
 };
 

@@ -2,6 +2,8 @@
 
 import type { LucideIcon } from "lucide-react";
 import {
+  Users,
+  ClipboardList,
   Ambulance,
   CreditCard,
   HeartPulse,
@@ -62,6 +64,32 @@ const navigation: Record<Role, NavItem[]> = {
       label: "Dashboard",
       href: "/dashboard/admin",
       icon: LayoutDashboard,
+      exact: true,
+    },
+    {
+      label: "Driver applications",
+      href: "/dashboard/admin/drivers",
+      icon: UserRound,
+    },
+    {
+      label: "Emergency requests",
+      href: "/dashboard/admin/emergency-requests",
+      icon: Ambulance,
+    },
+    {
+      label: "Ambulances",
+      href: "/dashboard/admin/ambulances",
+      icon: Ambulance,
+    },
+    {
+      label: "Users",
+      href: "/dashboard/admin/users",
+      icon: Users,
+    },
+    {
+      label: "Audit logs",
+      href: "/dashboard/admin/audit-logs",
+      icon: ClipboardList,
     },
   ],
 };

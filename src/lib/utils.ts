@@ -2,7 +2,6 @@ import { Role } from "@/types";
 
 export { cn } from "cn";
 
-
 export type MessageSource = {
   message?: unknown;
   data?: {
@@ -25,10 +24,6 @@ export function getMessage(value: unknown, fallback: string): string {
 
   return typeof message === "string" && message.trim() ? message : fallback;
 }
-
-
-
-
 
 export function getDashboardRoute(role: Role): string {
   switch (role) {
