@@ -136,34 +136,49 @@ export default function EmergencyRequestDetailsPage() {
             </button>
           )}
 
-          {!payment && request.status !== "CANCELLED" && (
-            <div className="mt-8 border-t border-slate-100 pt-6">
-              <div className="flex items-center gap-3">
-                <CreditCard className="size-5 text-emerald-700" />
-                <h2 className="font-semibold text-slate-900">Pay with bKash</h2>
+          {(!payment ||
+            payment.status === "PENDING" ||
+            payment.status === "FAILED") &&
+            request.status !== "CANCELLED" && (
+              <div className="mt-8 border-t border-slate-100 pt-6">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="size-5 text-emerald-700" />
+                  <h2 className="font-semibold text-slate-900">
+                    {payment ? "Retry payment with bKash" : "Pay with bKash"}
+                  </h2>
+                </div>
+                <p className="mt-2 text-sm text-slate-500">
+                  {payment
+                    ? payment.status === "PENDING"
+                      ? "Your previous checkout is still pending. You can open bKash again to continue or retry."
+                      : "Your previous payment did not complete. You can safely try again."
+                    : "Enter the amount and continue to the secure bKash checkout."}
+                </p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                  <input
+                    type="number"
+                    min="1"
+                    value={amount}
+                    onChange={(event) => setAmount(event.target.value)}
+                    className="h-11 rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-emerald-500"
+                  />
+                  <button
+                    type="button"
+                    disabled={isPaying}
+                    onClick={handlePayment}
+                    className="h-11 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                  >
+                    {isPaying
+                      ? "Opening bKash…"
+                      : payment
+                        ? payment.status === "PENDING"
+                          ? "Continue with bKash"
+                          : "Retry with bKash"
+                        : "Continue to bKash"}
+                  </button>
+                </div>
               </div>
-              <p className="mt-2 text-sm text-slate-500">
-                Enter the amount and continue to the secure bKash checkout.
-              </p>
-              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                <input
-                  type="number"
-                  min="1"
-                  value={amount}
-                  onChange={(event) => setAmount(event.target.value)}
-                  className="h-11 rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-emerald-500"
-                />
-                <button
-                  type="button"
-                  disabled={isPaying}
-                  onClick={handlePayment}
-                  className="h-11 rounded-xl bg-emerald-700 px-5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
-                >
-                  {isPaying ? "Opening bKash…" : "Continue to bKash"}
-                </button>
-              </div>
-            </div>
-          )}
+            )}
           {payment && (
             <div className="mt-8 border-t border-slate-100 pt-6">
               <h2 className="font-semibold text-slate-900">Payment</h2>

@@ -5,3 +5,4 @@ export * from "./patient.type";
 export * from "./profile.type";
 export * from "./admin.type";
 export * from "./admin-management.type";
+export * from "./trip.type";

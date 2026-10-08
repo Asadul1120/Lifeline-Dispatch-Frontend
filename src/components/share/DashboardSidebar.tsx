@@ -2,15 +2,15 @@
 
 import type { LucideIcon } from "lucide-react";
 import {
-  Users,
-  ClipboardList,
   Ambulance,
+  ClipboardList,
   CreditCard,
   HeartPulse,
   House,
   LayoutDashboard,
   LogOut,
   UserRound,
+  Users,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -57,6 +57,12 @@ const navigation: Record<Role, NavItem[]> = {
       label: "Dashboard",
       href: "/dashboard/driver",
       icon: LayoutDashboard,
+      exact: true,
+    },
+    {
+      label: "My trips",
+      href: "/dashboard/driver/trips",
+      icon: ClipboardList,
     },
   ],
   ADMIN: [

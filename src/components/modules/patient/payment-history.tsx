@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { CreditCard } from "lucide-react";
+import Link from "next/link";
 import { useMyPayments } from "@/hooks";
 
 export default function PaymentHistory() {
@@ -47,12 +47,25 @@ export default function PaymentHistory() {
                   {payment.status}
                 </span>
                 {payment.requestId && (
-                  <Link
-                    href={`/dashboard/patient/emergency-request/${payment.requestId}`}
-                    className="text-sm font-semibold text-emerald-700 hover:underline"
-                  >
-                    View request
-                  </Link>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/dashboard/patient/emergency-request/${payment.requestId}`}
+                      className="text-sm font-semibold text-emerald-700 hover:underline"
+                    >
+                      View request
+                    </Link>
+                    {(payment.status === "FAILED" ||
+                      payment.status === "PENDING") && (
+                      <Link
+                        href={`/dashboard/patient/emergency-request/${payment.requestId}`}
+                        className="text-sm font-semibold text-amber-700 hover:underline"
+                      >
+                        {payment.status === "PENDING"
+                          ? "Continue payment"
+                          : "Retry payment"}
+                      </Link>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

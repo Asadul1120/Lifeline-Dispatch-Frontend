@@ -1,8 +1,12 @@
+import type { Metadata } from "next";
 
-export default function page() {
-  return (
-    <div>
-      <h1>Driver Dashboard</h1>
-    </div>
-  );
+import DriverDashboard from "@/components/modules/driver/driver-dashboard";
+
+export const metadata: Metadata = {
+  title: "Driver Dashboard | Lifeline Dispatch",
+  description: "Manage assigned ambulance trips with Lifeline Dispatch.",
+};
+
+export default function DriverDashboardPage() {
+  return <DriverDashboard />;
 }

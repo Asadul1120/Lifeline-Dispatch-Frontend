@@ -13,6 +13,14 @@ export interface UserProfile {
   imageUrl?: string | null;
   emailVerified: boolean;
   patient?: PatientProfile | null;
+  driver?: {
+    licenseNumber: string;
+    experience: number;
+    isAvailable: boolean;
+    currentLocation: string | null;
+    contactNumber: string | null;
+    applicationStatus: "PENDING" | "APPROVED" | "REJECTED";
+  } | null;
 }
 
 export interface UpdatePatientProfilePayload {
