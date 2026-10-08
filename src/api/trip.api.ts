@@ -2,6 +2,7 @@ import apiClient from "@/lib/apiClient";
 import type {
   AssignedDriverRequestsResponse,
   DriverAvailabilityResponse,
+  DriverTripResponse,
   DriverTripsResponse,
   UpdateTripStatusPayload,
 } from "@/types";
@@ -68,5 +69,7 @@ export const cancelTrip = (tripId: string, reason: string) => {
 };
 
 export const getTrip = (tripId: string) => {
-  return apiClient(`/trip/${tripId}`, { method: "GET" });
+  return apiClient<DriverTripResponse>(`/trip/${tripId}`, {
+    method: "GET",
+  });
 };

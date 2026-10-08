@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTrip } from "@/hooks";
+import DriverTripActions from "./driver-trip-actions";
 
 const statusClasses: Record<string, string> = {
   STARTED: "border-blue-200 bg-blue-50 text-blue-700",
@@ -16,7 +17,7 @@ const statusClasses: Record<string, string> = {
 };
 
 export default function DriverTripDetails({ tripId }: { tripId: string }) {
-  const { data: response, isLoading, isError } = useTrip(tripId);
+  const { data: response, isLoading, isError, refetch } = useTrip(tripId);
   const trip = response?.data;
 
   if (isLoading) {
@@ -27,8 +28,14 @@ export default function DriverTripDetails({ tripId }: { tripId: string }) {
 
   if (isError || !trip) {
     return (
-      <div className="p-8 text-sm text-red-600">
-        Trip details could not be loaded.
+      <div className="space-y-4 p-8">
+        <p role="alert" className="text-sm text-red-600">
+          Trip details could not be loaded.
+        </p>
+
+        <Button type="button" variant="outline" onClick={() => void refetch()}>
+          Try again
+        </Button>
       </div>
     );
   }
@@ -44,57 +51,69 @@ export default function DriverTripDetails({ tripId }: { tripId: string }) {
           nativeButton={false}
           className="gap-2 bg-white"
         >
-          <ArrowLeft className="size-4" /> Back to dashboard
+          <ArrowLeft className="size-4" />
+          Back to dashboard
         </Button>
+
         <Card className="border-slate-200/70 bg-white shadow-sm">
           <CardHeader className="flex flex-row items-start justify-between gap-4 border-b border-slate-100">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
                 Trip details
               </p>
+
               <CardTitle className="mt-2 text-2xl">
                 {trip.request.emergencyType}
               </CardTitle>
+
               <p className="mt-2 text-sm text-slate-500">
                 Started{" "}
                 {trip.startTime ? formatDate(trip.startTime) : "Not started"}
               </p>
             </div>
+
             <Badge className={statusClasses[trip.status] ?? ""}>
               {trip.status}
             </Badge>
           </CardHeader>
+
           <CardContent className="grid gap-6 p-6 sm:grid-cols-2">
             <Detail
               icon={MapPin}
               label="Pickup"
               value={trip.request.pickupLocation}
             />
+
             <Detail
               icon={MapPin}
               label="Destination"
               value={trip.request.destination ?? "Not provided"}
             />
+
             <Detail
               icon={UserRound}
               label="Patient"
               value={trip.request.patient.name}
             />
+
             <Detail
               icon={Phone}
               label="Contact"
               value={patientPhone ?? trip.request.patient.email}
             />
+
             <Detail
               icon={MapPin}
               label="Requested"
               value={formatDate(trip.request.createdAt)}
             />
+
             <Detail
               icon={MapPin}
-              label="Completed"
-              value={trip.endTime ? formatDate(trip.endTime) : "Not completed"}
+              label="Ended"
+              value={trip.endTime ? formatDate(trip.endTime) : "In progress"}
             />
+
             {trip.cancelReason && (
               <Detail
                 icon={MapPin}
@@ -103,13 +122,17 @@ export default function DriverTripDetails({ tripId }: { tripId: string }) {
               />
             )}
           </CardContent>
-          <div className="border-t border-slate-100 p-6">
+
+          <div className="space-y-5 border-t border-slate-100 p-6">
+            <DriverTripActions trip={trip} />
+
             {patientPhone ? (
               <a
                 href={`tel:${patientPhone}`}
                 className="inline-flex items-center gap-2 font-medium text-emerald-700"
               >
-                <Phone className="size-4" /> Call patient
+                <Phone className="size-4" />
+                Call patient
               </a>
             ) : (
               <a
@@ -138,8 +161,10 @@ function Detail({
   return (
     <div className="flex gap-3">
       <Icon className="mt-0.5 size-4 shrink-0 text-emerald-700" />
+
       <div>
         <p className="text-xs text-slate-400">{label}</p>
+
         <p className="mt-1 break-words text-sm font-medium text-slate-800">
           {value}
         </p>

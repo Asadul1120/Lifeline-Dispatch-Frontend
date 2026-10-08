@@ -62,6 +62,7 @@ const statusClasses: Record<TripStatus, string> = {
 
 export default function DriverDashboard() {
   const { data: meResponse } = useGetMe();
+
   const {
     data: tripsResponse,
     isLoading,
@@ -69,31 +70,43 @@ export default function DriverDashboard() {
     refetch,
     isFetching,
   } = useMyTrips();
+
   const {
     data: assignedResponse,
     isLoading: isAssignedLoading,
     isError: isAssignedError,
     refetch: refetchAssigned,
   } = useAssignedRequests();
+
   const { mutate: startTrip, isPending: isStartingTrip } = useStartTrip();
+
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateTripStatus();
+
   const { mutate: markPickedUp, isPending: isPickingUp } =
     useMarkTripPickedUp();
+
   const { mutate: cancelTrip, isPending: isCancelling } = useCancelTrip();
+
   const { mutate: updateAvailability, isPending: isUpdatingAvailability } =
     useUpdateDriverAvailability();
+
   const { mutate: updateLocation, isPending: isUpdatingLocation } =
     useUpdateDriverLocation();
+
   const [locationInput, setLocationInput] = useState("");
 
   const profile = meResponse?.data as UserProfile | undefined;
   const trips = tripsResponse?.data ?? [];
   const assignedRequests = assignedResponse?.data ?? [];
+
   const activeTrip = trips.find(
     (trip) => trip.status === "STARTED" || trip.status === "ONGOING",
   );
+
   const completedTrips = trips.filter((trip) => trip.status === "COMPLETED");
+
   const cancelledTrips = trips.filter((trip) => trip.status === "CANCELLED");
+
   const driver = profile?.driver;
 
   useEffect(() => {
@@ -128,6 +141,7 @@ export default function DriverDashboard() {
             toast.error(getMessage(error, "Could not cancel trip.")),
         },
       );
+
       return;
     }
 
@@ -164,6 +178,7 @@ export default function DriverDashboard() {
 
   const handleLocation = () => {
     if (!locationInput.trim()) return;
+
     updateLocation(locationInput.trim(), {
       onSuccess: (result) =>
         toast.success(getMessage(result, "Location updated.")),
@@ -180,16 +195,19 @@ export default function DriverDashboard() {
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">
               Driver workspace
             </p>
+
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
               {profile?.name
                 ? `Good to see you, ${profile.name.split(" ")[0]}.`
                 : "Driver dashboard"}
             </h1>
+
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
               Keep an eye on your assigned trips, update progress, and help
               every patient reach care safely.
             </p>
           </div>
+
           <Button
             variant="outline"
             size="lg"
@@ -216,18 +234,21 @@ export default function DriverDashboard() {
             value={activeTrip ? "1" : "0"}
             tone="emerald"
           />
+
           <SummaryCard
             icon={CheckCircle2}
             label="Completed trips"
             value={String(completedTrips.length)}
             tone="blue"
           />
+
           <SummaryCard
             icon={Clock3}
             label="Assigned requests"
             value={String(assignedRequests.length)}
             tone="amber"
           />
+
           <SummaryCard
             icon={ShieldCheck}
             label="Service record"
@@ -243,10 +264,12 @@ export default function DriverDashboard() {
                 <h2 className="text-xl font-semibold text-slate-900">
                   Current assignment
                 </h2>
+
                 <p className="mt-1 text-sm text-slate-500">
                   Your active trip or newly assigned requests appear here.
                 </p>
               </div>
+
               {activeTrip && (
                 <Badge className={statusClasses[activeTrip.status]}>
                   {statusLabels[activeTrip.status]}
@@ -291,9 +314,11 @@ export default function DriverDashboard() {
             <h2 className="text-xl font-semibold text-slate-900">
               Driver profile
             </h2>
+
             <p className="mt-1 text-sm text-slate-500">
               Your approved driver information.
             </p>
+
             <DriverProfileCard
               profile={profile}
               driver={driver}
@@ -313,16 +338,19 @@ export default function DriverDashboard() {
               <h2 className="text-xl font-semibold text-slate-900">
                 Trip history
               </h2>
+
               <p className="mt-1 text-sm text-slate-500">
                 A record of trips handled through Lifeline Dispatch.
               </p>
             </div>
+
             {cancelledTrips.length > 0 && (
               <span className="text-xs text-slate-400">
                 {cancelledTrips.length} cancelled
               </span>
             )}
           </div>
+
           <TripHistory
             trips={trips.filter((trip) => trip.id !== activeTrip?.id)}
           />
@@ -360,6 +388,7 @@ function SummaryCard({
         >
           <Icon className="size-5" aria-hidden="true" />
         </span>
+
         <div>
           <p className="text-xs font-medium text-slate-500">{label}</p>
           <p className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
@@ -392,24 +421,29 @@ function ActiveTripCard({
   return (
     <Card className="overflow-hidden border-slate-200/70 bg-white shadow-sm">
       <div className="h-1.5 bg-emerald-600" />
+
       <CardHeader className="border-b border-slate-100 p-6 sm:p-7">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
               Emergency request
             </p>
+
             <CardTitle className="mt-2 text-2xl font-bold text-slate-900">
               {request.emergencyType}
             </CardTitle>
+
             <CardDescription className="mt-2">
               Request ID: {request.id.slice(0, 8)}…
             </CardDescription>
           </div>
+
           <Badge className={statusClasses[trip.status]}>
             {statusLabels[trip.status]}
           </Badge>
         </div>
       </CardHeader>
+
       <CardContent className="p-6 sm:p-7">
         <div className="grid gap-4 sm:grid-cols-2">
           <Detail
@@ -417,16 +451,19 @@ function ActiveTripCard({
             label="Pickup location"
             value={request.pickupLocation}
           />
+
           <Detail
             icon={Navigation}
             label="Destination"
             value={request.destination ?? "Not provided"}
           />
+
           <Detail
             icon={UserRound}
             label="Patient"
             value={request.patient.name}
           />
+
           <Detail
             icon={CalendarDays}
             label="Requested"
@@ -445,6 +482,7 @@ function ActiveTripCard({
               {isUpdating ? "Updating…" : "Mark on the way"}
             </Button>
           )}
+
           {trip.status === "ONGOING" && (
             <>
               {request.status === "ON_THE_WAY" && (
@@ -457,38 +495,46 @@ function ActiveTripCard({
                   {isPickingUp ? "Updating…" : "Mark patient picked up"}
                 </Button>
               )}
-              <Button
-                onClick={() => onUpdateStatus(trip, "COMPLETED")}
-                disabled={isUpdating || isPickingUp}
-                className="gap-2"
-              >
-                <CheckCircle2 className="size-4" />
-                {isUpdating ? "Updating…" : "Complete trip"}
-              </Button>
+
+              {request.status === "PICKED_UP" && (
+                <Button
+                  onClick={() => onUpdateStatus(trip, "COMPLETED")}
+                  disabled={isUpdating || isPickingUp}
+                  className="gap-2"
+                >
+                  <CheckCircle2 className="size-4" />
+                  {isUpdating ? "Updating…" : "Complete trip"}
+                </Button>
+              )}
             </>
           )}
+
           <Button
             variant="destructive"
             onClick={() => onUpdateStatus(trip, "CANCELLED")}
-            disabled={isUpdating}
+            disabled={isUpdating || isPickingUp}
             className="gap-2"
           >
             Cancel trip
           </Button>
+
           {request.patient.email && (
             <a
               href={`mailto:${request.patient.email}`}
               className="ml-auto inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-emerald-700"
             >
-              <Phone className="size-4" /> Contact patient
+              <Phone className="size-4" />
+              Contact patient
             </a>
           )}
+
           {request.patient.patient?.phone && (
             <a
               href={`tel:${request.patient.patient.phone}`}
               className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-emerald-700"
             >
-              <Phone className="size-4" /> Call patient
+              <Phone className="size-4" />
+              Call patient
             </a>
           )}
         </div>
@@ -519,18 +565,22 @@ function AssignedRequestsCard({
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">
                   Assigned request
                 </p>
+
                 <CardTitle className="mt-2 text-xl font-bold text-slate-900">
                   {request.emergencyType}
                 </CardTitle>
+
                 <CardDescription className="mt-1">
                   Assigned {formatDate(request.createdAt)}
                 </CardDescription>
               </div>
+
               <Badge className="border-amber-200 bg-amber-50 text-amber-700">
                 {request.priority} priority
               </Badge>
             </div>
           </CardHeader>
+
           <CardContent className="p-5 sm:p-6">
             <div className="grid gap-4 sm:grid-cols-2">
               <Detail
@@ -538,26 +588,31 @@ function AssignedRequestsCard({
                 label="Pickup location"
                 value={request.pickupLocation}
               />
+
               <Detail
                 icon={Navigation}
                 label="Destination"
                 value={request.destination ?? "Not provided"}
               />
+
               <Detail
                 icon={UserRound}
                 label="Patient"
                 value={request.patient.name}
               />
+
               <Detail
                 icon={Ambulance}
                 label="Ambulance"
                 value={request.ambulance?.vehicleNumber ?? "Assigned ambulance"}
               />
             </div>
+
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-5">
               <p className="text-xs text-slate-500">
                 Start the trip when you are ready to respond.
               </p>
+
               <Button
                 onClick={() => onStart(request.id)}
                 disabled={isStarting}
@@ -600,33 +655,40 @@ function DriverProfileCard({
           <span className="flex size-11 items-center justify-center rounded-full bg-[#073e34] text-white">
             <UserRound className="size-5" />
           </span>
+
           <div className="min-w-0">
             <p className="truncate font-semibold text-slate-900">
               {profile?.name ?? "Driver"}
             </p>
+
             <p className="truncate text-sm text-slate-500">
               {profile?.email ?? "—"}
             </p>
           </div>
         </div>
+
         <div className="grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2 xl:grid-cols-1">
           <ProfileItem
             label="License number"
             value={driver?.licenseNumber ?? "—"}
           />
+
           <ProfileItem
             label="Experience"
             value={driver ? `${driver.experience} years` : "—"}
           />
+
           <ProfileItem
             label="Current location"
             value={driver?.currentLocation ?? "Not set"}
           />
+
           <ProfileItem
             label="Availability"
             value={driver?.isAvailable ? "Available" : "Busy / unavailable"}
           />
         </div>
+
         <div className="space-y-3 border-t border-slate-100 pt-5">
           <Button
             type="button"
@@ -641,6 +703,7 @@ function DriverProfileCard({
                 ? "Go offline"
                 : "Go available"}
           </Button>
+
           <div className="flex gap-2">
             <input
               value={locationInput}
@@ -649,6 +712,7 @@ function DriverProfileCard({
               className="h-10 min-w-0 flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               aria-label="Current location"
             />
+
             <Button
               type="button"
               variant="outline"
@@ -689,6 +753,7 @@ function TripHistory({ trips }: { trips: DriverTrip[] }) {
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
                 <Ambulance className="size-5" />
               </span>
+
               <div className="min-w-0">
                 <Link
                   href={`/dashboard/driver/trips/${trip.id}`}
@@ -696,16 +761,19 @@ function TripHistory({ trips }: { trips: DriverTrip[] }) {
                 >
                   {trip.request.emergencyType}
                 </Link>
+
                 <p className="mt-1 truncate text-sm text-slate-500">
                   {trip.request.pickupLocation} →{" "}
                   {trip.request.destination ?? "No destination"}
                 </p>
+
                 <p className="mt-2 text-xs text-slate-400">
                   {formatDate(trip.createdAt)} · Patient:{" "}
                   {trip.request.patient.name}
                 </p>
               </div>
             </div>
+
             <Badge
               className={`${statusClasses[trip.status]} shrink-0 self-start sm:self-center`}
             >
@@ -730,6 +798,7 @@ function Detail({
   return (
     <div className="flex min-w-0 gap-3">
       <Icon className="mt-0.5 size-4 shrink-0 text-emerald-700" />
+
       <div className="min-w-0">
         <p className="text-xs text-slate-400">{label}</p>
         <p className="mt-1 break-words text-sm font-medium text-slate-800">
@@ -771,6 +840,7 @@ function MessageCard({
     <Card className="border-red-200 bg-red-50/60 shadow-sm">
       <CardContent className="flex min-h-64 flex-col items-center justify-center gap-4 p-8 text-center">
         <p className="text-sm text-red-700">{message}</p>
+
         <Button variant="outline" onClick={onRetry}>
           Try again
         </Button>
@@ -786,7 +856,9 @@ function EmptyCard() {
         <span className="flex size-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
           <Ambulance className="size-7" />
         </span>
+
         <h3 className="mt-4 font-semibold text-slate-900">No active trip</h3>
+
         <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
           You are all caught up. Assigned trips will appear here once a trip has
           been started.
@@ -798,6 +870,7 @@ function EmptyCard() {
 
 function formatDate(value: string | null) {
   if (!value) return "—";
+
   return new Intl.DateTimeFormat("en-BD", {
     dateStyle: "medium",
     timeStyle: "short",

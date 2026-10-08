@@ -85,3 +85,7 @@ export interface DriverAvailabilityResponse {
     applicationStatus?: string;
   };
 }
+
+export interface DriverTripResponse {
+  data: DriverTrip;
+}
