@@ -33,3 +33,21 @@ export interface UpdatePatientProfilePayload {
   };
   profileImage?: File | null;
 }
+
+
+export interface UpdateDriverProfilePayload {
+  name: string;
+  driver: {
+    licenseNumber: string;
+    experience: number;
+    currentLocation: string;
+    contactNumber: string;
+  };
+  profileImage?: File | null;
+}
+
+export interface UserProfileResponse {
+  success: boolean;
+  message: string;
+  data: UserProfile;
+}

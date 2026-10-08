@@ -13,11 +13,12 @@ import {
   Users,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { useLogout } from "@/hooks";
+import { useGetMe, useLogout } from "@/hooks";
 import { getMessage } from "@/lib/utils";
 import type { Role } from "@/types";
 
@@ -52,6 +53,7 @@ const navigation: Record<Role, NavItem[]> = {
       icon: UserRound,
     },
   ],
+
   DRIVER: [
     {
       label: "Dashboard",
@@ -64,7 +66,13 @@ const navigation: Record<Role, NavItem[]> = {
       href: "/dashboard/driver/trips",
       icon: ClipboardList,
     },
+    {
+      label: "My profile",
+      href: "/dashboard/driver/profile",
+      icon: UserRound,
+    },
   ],
+
   ADMIN: [
     {
       label: "Dashboard",
@@ -115,7 +123,12 @@ export default function DashboardSidebar({
 }: DashboardSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+
+  const { data: profileResponse } = useGetMe();
+
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
+
+  const profileImage = profileResponse?.data?.imageUrl;
 
   const handleLogout = () => {
     if (isLoggingOut) return;
@@ -126,6 +139,7 @@ export default function DashboardSidebar({
         toast.success("You have been logged out.");
         router.replace("/login");
       },
+
       onError: (error) => {
         toast.error(getMessage(error, "Logout failed. Please try again."));
       },
@@ -134,6 +148,7 @@ export default function DashboardSidebar({
 
   return (
     <>
+      {/* Mobile overlay */}
       {isOpen && (
         <button
           type="button"
@@ -149,15 +164,18 @@ export default function DashboardSidebar({
           isOpen ? "flex" : "hidden"
         }`}
       >
-        <div className="flex h-20 items-center justify-between border-b border-slate-100 px-5">
+        {/* Sidebar header */}
+        <div className="flex h-20 shrink-0 items-center justify-between border-b border-slate-100 px-5">
           <Link href="/" onClick={onClose} className="flex items-center gap-3">
             <span className="flex size-10 items-center justify-center rounded-xl bg-emerald-700 text-white">
               <HeartPulse aria-hidden="true" className="size-6" />
             </span>
+
             <span>
               <span className="block text-lg font-bold leading-tight text-slate-900">
                 Lifeline
               </span>
+
               <span className="block text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
                 Dispatch
               </span>
@@ -174,9 +192,10 @@ export default function DashboardSidebar({
           </button>
         </div>
 
+        {/* Dashboard navigation */}
         <nav
           aria-label="Dashboard navigation"
-          className="flex-1 overflow-y-auto px-3 py-6"
+          className="min-h-0 flex-1 overflow-y-auto px-3 py-6"
         >
           <p className="px-3 text-xs font-semibold uppercase tracking-widest text-slate-400">
             Menu
@@ -194,13 +213,14 @@ export default function DashboardSidebar({
                     href={href}
                     onClick={onClose}
                     aria-current={isActive ? "page" : undefined}
-                    className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                       isActive
                         ? "bg-emerald-50 text-emerald-800"
                         : "text-slate-600 hover:bg-slate-50 hover:text-emerald-700"
                     }`}
                   >
-                    <Icon aria-hidden="true" className="size-5" />
+                    <Icon aria-hidden="true" className="size-5 shrink-0" />
+
                     {label}
                   </Link>
                 </li>
@@ -209,33 +229,58 @@ export default function DashboardSidebar({
           </ul>
         </nav>
 
-        <div className="space-y-1 border-t border-slate-100 p-3">
-          <Link
-            href="/"
-            onClick={onClose}
-            className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50"
-          >
-            <House aria-hidden="true" className="size-5" />
-            Back to website
-          </Link>
+        {/* Sidebar footer */}
+        <div className="shrink-0 border-t border-slate-100 p-3">
+          {/* Account information */}
+          <div className="mb-3 flex items-center gap-3 rounded-xl bg-slate-50 p-3">
+            <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-emerald-100 text-emerald-700">
+              {profileImage ? (
+                <Image
+                  src={profileImage}
+                  alt=""
+                  width={40}
+                  height={40}
+                  unoptimized
+                  className="size-10 rounded-full object-cover"
+                />
+              ) : (
+                <UserRound aria-hidden="true" className="size-5" />
+              )}
+            </span>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
-          >
-            <LogOut aria-hidden="true" className="size-5" />
-            {isLoggingOut ? "Logging out..." : "Logout"}
-          </button>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-slate-800">
+                {name || "Account"}
+              </p>
 
-          <div className="border-t border-slate-100 px-3 pt-4">
-            <p className="truncate text-sm font-semibold text-slate-800">
-              {name}
-            </p>
-            <p className="text-xs capitalize text-slate-500">
-              {role.toLowerCase()}
-            </p>
+              <p className="mt-0.5 text-xs capitalize text-slate-500">
+                {role.toLowerCase()}
+              </p>
+            </div>
+          </div>
+
+          {/* Website link and logout */}
+          <div className="space-y-1">
+            <Link
+              href="/"
+              onClick={onClose}
+              className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+            >
+              <House aria-hidden="true" className="size-5 shrink-0" />
+              Back to website
+            </Link>
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              aria-busy={isLoggingOut}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <LogOut aria-hidden="true" className="size-5 shrink-0" />
+
+              {isLoggingOut ? "Logging out..." : "Logout"}
+            </button>
           </div>
         </div>
       </aside>

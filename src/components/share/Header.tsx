@@ -10,6 +10,7 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -27,21 +28,33 @@ const routes = [
 
 export default function Header() {
   const pathname = usePathname();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+
   const accountRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading } = useGetMe();
+
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
   const user = data?.data;
+
   const dashboardUrl = user?.role ? getDashboardRoute(user.role) : "/login";
 
+  const profileUrl =
+    user?.role === "PATIENT" || user?.role === "DRIVER"
+      ? `${dashboardUrl}/profile`
+      : null;
+
   useEffect(() => {
-    if (!isAccountOpen) return;
+    if (!isAccountOpen && !isMenuOpen) return;
 
     const handlePointerDown = (event: PointerEvent) => {
-      if (!accountRef.current?.contains(event.target as Node)) {
+      if (
+        isAccountOpen &&
+        !accountRef.current?.contains(event.target as Node)
+      ) {
         setIsAccountOpen(false);
       }
     };
@@ -49,6 +62,7 @@ export default function Header() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsAccountOpen(false);
+        setIsMenuOpen(false);
       }
     };
 
@@ -59,7 +73,7 @@ export default function Header() {
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isAccountOpen]);
+  }, [isAccountOpen, isMenuOpen]);
 
   const handleLogout = () => {
     if (isLoggingOut) return;
@@ -68,8 +82,10 @@ export default function Header() {
       onSuccess: (res) => {
         setIsMenuOpen(false);
         setIsAccountOpen(false);
+
         toast.success(res?.message || "You have been logged out successfully.");
       },
+
       onError: (err) => {
         toast.error(
           err?.message ||
@@ -80,15 +96,9 @@ export default function Header() {
   };
 
   return (
-    <header
-      className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur"
-      onKeyDown={(event) => {
-        if (event.key === "Escape") {
-          setIsMenuOpen(false);
-        }
-      }}
-    >
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+        {/* Logo */}
         <Link
           href="/"
           onClick={() => setIsMenuOpen(false)}
@@ -103,12 +113,14 @@ export default function Header() {
             <span className="text-lg font-bold leading-tight tracking-tight text-slate-900">
               Lifeline
             </span>
+
             <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
               Dispatch
             </span>
           </span>
         </Link>
 
+        {/* Navigation */}
         <nav
           id="header-navigation"
           aria-label="Main navigation"
@@ -157,9 +169,9 @@ export default function Header() {
                   Dashboard
                 </Link>
 
-                {user.role === "PATIENT" && (
+                {profileUrl && (
                   <Link
-                    href="/dashboard/patient/profile"
+                    href={profileUrl}
                     onClick={() => setIsMenuOpen(false)}
                     className="rounded-xl px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                   >
@@ -175,6 +187,7 @@ export default function Header() {
                   className="mt-1 w-full rounded-xl"
                 >
                   <LogOut aria-hidden="true" className="size-4" />
+
                   {isLoggingOut ? "Leaving…" : "Logout"}
                 </Button>
               </>
@@ -196,13 +209,10 @@ export default function Header() {
         {/* Desktop account dropdown */}
         <div className="hidden shrink-0 md:flex">
           {isLoading ? (
-            <div
-              role="status"
-              className="flex h-10 w-24 items-center justify-center"
-            >
+            <output className="flex h-10 w-24 items-center justify-center">
               <Spinner className="size-5 text-emerald-700" />
               <span className="sr-only">Loading account…</span>
-            </div>
+            </output>
           ) : user ? (
             <div ref={accountRef} className="relative">
               <button
@@ -213,7 +223,18 @@ export default function Header() {
                 className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition-colors hover:border-emerald-200 hover:bg-emerald-50"
               >
                 <span className="flex size-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                  <UserRound aria-hidden="true" className="size-4" />
+                  {user.imageUrl ? (
+                    <Image
+                      src={user.imageUrl}
+                      alt=""
+                      width={32}
+                      height={32}
+                      unoptimized
+                      className="size-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <UserRound aria-hidden="true" className="size-4" />
+                  )}
                 </span>
 
                 <span className="max-w-32 truncate">
@@ -246,9 +267,9 @@ export default function Header() {
                     Dashboard
                   </Link>
 
-                  {user.role === "PATIENT" && (
+                  {profileUrl && (
                     <Link
-                      href="/dashboard/patient/profile"
+                      href={profileUrl}
                       onClick={() => setIsAccountOpen(false)}
                       className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
                     >
@@ -266,6 +287,7 @@ export default function Header() {
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
                   >
                     <LogOut aria-hidden="true" className="size-4" />
+
                     {isLoggingOut ? "Leaving…" : "Logout"}
                   </button>
                 </div>
@@ -283,6 +305,7 @@ export default function Header() {
           )}
         </div>
 
+        {/* Mobile menu button */}
         <Button
           type="button"
           variant="ghost"
