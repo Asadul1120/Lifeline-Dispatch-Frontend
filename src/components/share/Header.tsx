@@ -25,6 +25,7 @@ import { getDashboardRoute } from "@/lib/utils";
 const routes = [
   { name: "Home", url: "/" },
   { name: "About us", url: "/about-us" },
+  { name: "Contact", url: "/contact" },
 ];
 
 export default function Header() {
@@ -241,7 +242,6 @@ export default function Header() {
                   </span>
                 </span>
                 <ChevronDown
-                
                   size={16}
                   aria-hidden="true"
                   className={`text-slate-500 transition-transform ${
