@@ -1,4 +1,7 @@
+import { Suspense } from "react";
+
 import AdminAuditLogs from "@/components/modules/admin/admin-audit-logs";
+
 import { AdminPage } from "@/components/modules/admin/admin-shared";
 
 export default function AdminAuditLogsPage() {
@@ -7,7 +10,9 @@ export default function AdminAuditLogsPage() {
       title="Activity history"
       description="Review recorded actions across your dispatch system."
     >
-      <AdminAuditLogs />
+      <Suspense fallback={<p>Loading audit logs...</p>}>
+        <AdminAuditLogs />
+      </Suspense>
     </AdminPage>
   );
 }

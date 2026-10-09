@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { Suspense, useState } from "react";
 import { useParams } from "next/navigation";
-import { useState } from "react";
 import { ArrowLeft, History, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,13 +14,10 @@ import {
   NativeSelectOption,
 } from "@/components/ui/native-select";
 
-import { useGetMe } from "@/hooks";
-import {
-  useAdminUser,
-  useChangeUserStatus,
-} from "@/hooks";
+import { useGetMe, useAdminUser, useChangeUserStatus } from "@/hooks";
 
 import { cn, getMessage } from "@/lib/utils";
+
 import AdminAuditLogs from "./admin-audit-logs";
 
 import {
@@ -29,7 +27,6 @@ import {
   QueryMessage,
   StatusBadge,
 } from "./admin-shared";
-import Image from "next/image";
 
 export default function AdminUserDetails() {
   const { id } = useParams<{ id: string }>();
@@ -42,7 +39,40 @@ export default function AdminUserDetails() {
   const [showHistory, setShowHistory] = useState(false);
 
   const user = query.data?.data;
+
   const isOwnAccount = currentUser.data?.data?.id === id;
+  const isCheckingAccount = currentUser.isPending;
+
+  const handleStatusUpdate = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (
+      !user ||
+      !status ||
+      status === user.status ||
+      mutation.isPending ||
+      isOwnAccount ||
+      isCheckingAccount
+    ) {
+      return;
+    }
+
+    mutation.mutate(
+      {
+        userId: id,
+        status,
+      },
+      {
+        onSuccess: () => {
+          setStatus("");
+          toast.success("Account status updated successfully.");
+        },
+        onError: (error) => {
+          toast.error(getMessage(error, "Could not update account."));
+        },
+      },
+    );
+  };
 
   return (
     <AdminPage
@@ -70,6 +100,7 @@ export default function AdminUserDetails() {
       {query.isSuccess && user && (
         <>
           <div className="grid items-start gap-6 lg:grid-cols-[320px_1fr]">
+            {/* User profile */}
             <AdminPanel>
               <div className="py-4 text-center">
                 <div className="mx-auto flex size-20 items-center justify-center overflow-hidden rounded-2xl bg-emerald-100 text-3xl font-bold text-emerald-800">
@@ -85,9 +116,11 @@ export default function AdminUserDetails() {
                     user.name.slice(0, 1).toUpperCase()
                   )}
                 </div>
+
                 <h2 className="mt-5 text-xl font-bold text-slate-900">
                   {user.name}
                 </h2>
+
                 <p className="mt-2 break-all text-sm text-slate-500">
                   {user.email}
                 </p>
@@ -107,6 +140,7 @@ export default function AdminUserDetails() {
                     />
                   }
                 />
+
                 <InfoItem
                   label="Joined"
                   value={new Date(user.createdAt).toLocaleDateString("en-BD")}
@@ -115,6 +149,7 @@ export default function AdminUserDetails() {
             </AdminPanel>
 
             <div className="space-y-6">
+              {/* Account status management */}
               <AdminPanel
                 title="Account access"
                 action={<ShieldCheck className="size-5 text-emerald-700" />}
@@ -125,49 +160,27 @@ export default function AdminUserDetails() {
                   </p>
                 ) : (
                   <form
-                    onSubmit={(event) => {
-                      event.preventDefault();
-
-                      if (
-                        !status ||
-                        status === user.status ||
-                        mutation.isPending
-                      ) {
-                        return;
-                      }
-
-                      mutation.mutate(
-                        { userId: id, status },
-                        {
-                          onSuccess: () => {
-                            setStatus("");
-                            toast.success("Account status updated.");
-                          },
-                          onError: (error) => {
-                            toast.error(
-                              getMessage(error, "Could not update account."),
-                            );
-                          },
-                        },
-                      );
-                    }}
+                    onSubmit={handleStatusUpdate}
                     className="flex flex-col gap-4 sm:flex-row sm:items-end"
                   >
                     <div className="flex-1 space-y-2">
                       <Label htmlFor="account-status">Account status</Label>
+
                       <NativeSelect
                         id="account-status"
                         value={status || user.status}
                         onChange={(event) => setStatus(event.target.value)}
-                        disabled={mutation.isPending}
+                        disabled={mutation.isPending || isCheckingAccount}
                         className="h-11 w-full"
                       >
                         <NativeSelectOption value="ACTIVE">
                           Active
                         </NativeSelectOption>
+
                         <NativeSelectOption value="SUSPENDED">
                           Suspended
                         </NativeSelectOption>
+
                         <NativeSelectOption value="BANNED">
                           Banned
                         </NativeSelectOption>
@@ -177,7 +190,10 @@ export default function AdminUserDetails() {
                     <Button
                       type="submit"
                       disabled={
-                        !status || status === user.status || mutation.isPending
+                        !status ||
+                        status === user.status ||
+                        mutation.isPending ||
+                        isCheckingAccount
                       }
                       className="h-11 rounded-xl bg-emerald-700 px-5 hover:bg-emerald-800"
                     >
@@ -187,15 +203,19 @@ export default function AdminUserDetails() {
                 )}
               </AdminPanel>
 
+              {/* Patient information */}
               {user.patient && (
                 <AdminPanel title="Patient information">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <InfoItem label="Phone" value={user.patient.phone} />
+
                     <InfoItem
                       label="Blood group"
                       value={user.patient.bloodGroup}
                     />
+
                     <InfoItem label="Address" value={user.patient.address} />
+
                     <InfoItem
                       label="Emergency contact"
                       value={user.patient.emergencyContact}
@@ -204,6 +224,7 @@ export default function AdminUserDetails() {
                 </AdminPanel>
               )}
 
+              {/* Driver information */}
               {user.driver && (
                 <AdminPanel title="Driver information">
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -211,21 +232,26 @@ export default function AdminUserDetails() {
                       label="License"
                       value={user.driver.licenseNumber}
                     />
+
                     <InfoItem
                       label="Experience"
                       value={`${user.driver.experience} years`}
                     />
+
                     <InfoItem label="Phone" value={user.driver.contactNumber} />
+
                     <InfoItem
                       label="Location"
                       value={user.driver.currentLocation}
                     />
+
                     <InfoItem
                       label="Application"
                       value={
                         <StatusBadge status={user.driver.applicationStatus} />
                       }
                     />
+
                     <InfoItem
                       label="Available for dispatch"
                       value={user.driver.isAvailable ? "Yes" : "No"}
@@ -236,18 +262,33 @@ export default function AdminUserDetails() {
             </div>
           </div>
 
+          {/* Activity History */}
           <Button
             type="button"
             variant="outline"
-            onClick={() => setShowHistory(!showHistory)}
+            onClick={() => setShowHistory((previous) => !previous)}
             aria-expanded={showHistory}
+            aria-controls="admin-user-activity"
             className="h-10 gap-2 rounded-xl px-4"
           >
             <History className="size-4" />
+
             {showHistory ? "Hide activity history" : "View activity history"}
           </Button>
 
-          {showHistory && <AdminAuditLogs userId={id} />}
+          {showHistory && (
+            <div id="admin-user-activity">
+              <Suspense
+                fallback={
+                  <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
+                    Loading activity history...
+                  </div>
+                }
+              >
+                <AdminAuditLogs userId={id} />
+              </Suspense>
+            </div>
+          )}
         </>
       )}
     </AdminPage>
