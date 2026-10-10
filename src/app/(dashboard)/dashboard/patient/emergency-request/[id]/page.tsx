@@ -20,7 +20,7 @@ export default function EmergencyRequestDetailsPage() {
   const { mutate: cancelRequest, isPending: isCancelling } =
     useCancelEmergencyRequest();
   const { mutate: createPayment, isPending: isPaying } = useCreatePayment();
-  const [amount, setAmount] = useState("500");
+  const [amount, setAmount] = useState("7499");
   const request = response?.data;
 
   if (isLoading) {
