@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import {
   emailVerification,
   getMe,
@@ -16,6 +17,7 @@ export const useRegister = () => {
 
 export const useEmailVerification = () => {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: emailVerification,
     onSuccess: () => {
@@ -60,13 +62,10 @@ export const useLogout = () => {
 
   return useMutation({
     mutationFn: userLogout,
-    onSuccess: async () => {
-      await queryClient.cancelQueries({
-        queryKey: ["user"],
-        exact: true,
-      });
 
-      queryClient.setQueryData(["user"], null);
+    onSuccess: async () => {
+      await queryClient.cancelQueries();
+      queryClient.removeQueries();
     },
   });
 };
@@ -75,6 +74,10 @@ export const useGetMe = () => {
   return useQuery({
     queryKey: ["user"],
     queryFn: getMe,
+
     retry: false,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 };

@@ -5,7 +5,10 @@ import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { getDashboardRoute, getMessage } from "@/lib/utils";
+import {
+  getMessage,
+  getSafeDashboardRedirect,
+} from "@/lib/utils";
 import { loginSchema } from "@/validation";
 import { useLogin } from "@/hooks";
 
@@ -49,7 +52,17 @@ export default function LoginForm() {
       login(loginData, {
         onSuccess: (response) => {
           toast.success(getMessage(response, "Login successful."));
-          router.push(getDashboardRoute(response.data.role));
+
+          const requested = new URLSearchParams(window.location.search).get(
+            "redirect",
+          );
+
+          const destination = getSafeDashboardRedirect(
+            response.data.role,
+            requested,
+          );
+
+          router.replace(destination);
         },
         onError: (error) => {
           toast.error(getMessage(error, "Login failed. Please try again."));

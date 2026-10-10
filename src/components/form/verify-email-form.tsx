@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "@tanstack/react-form";
 import { ArrowRight, MailCheck } from "lucide-react";
 import Link from "next/link";
@@ -20,24 +21,34 @@ import { getMessage } from "@/lib/utils";
 import { verifyEmailSchema } from "@/validation/auth.validation";
 
 export default function VerifyEmailForm() {
-    
+  const router = useRouter();
   const searchParams = useSearchParams();
+
   const email = searchParams.get("email")?.trim() ?? "";
+
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const { mutate: verifyEmail, isPending } = useEmailVerification();
 
-  const router = useRouter();
+  
+  useEffect(() => {
+    if (!email) {
+      router.replace("/register");
+    }
+  }, [email, router]);
 
+ 
   const form = useForm({
     defaultValues: {
       email,
       otp: "",
     },
+
     validators: {
       onChange: verifyEmailSchema,
       onSubmit: verifyEmailSchema,
     },
+
     onSubmit: ({ value }) => {
       if (!isValidEmail || isPending) return;
 
@@ -54,8 +65,11 @@ export default function VerifyEmailForm() {
                 "Email verified successfully. You can now log in.",
               ),
             );
-            router.push("/");
+
+            // Redirect to login after verification.
+            router.replace("/login");
           },
+
           onError: (error) => {
             toast.error(
               getMessage(error, "Email verification failed. Please try again."),
@@ -66,8 +80,14 @@ export default function VerifyEmailForm() {
     },
   });
 
+
+  if (!email) {
+    return null;
+  }
+
   return (
     <div className="w-full">
+      {/* Header */}
       <div className="mb-7 text-center">
         <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
           <MailCheck aria-hidden="true" className="size-7" />
@@ -82,6 +102,7 @@ export default function VerifyEmailForm() {
         </p>
       </div>
 
+      {/* Verification Form */}
       <form
         noValidate
         aria-busy={isPending}
@@ -94,6 +115,7 @@ export default function VerifyEmailForm() {
         }}
       >
         <FieldGroup className="gap-5">
+          {/* Email Field */}
           <Field data-invalid={!isValidEmail} className="gap-2">
             <FieldLabel htmlFor="verify-email">Email address</FieldLabel>
 
@@ -116,6 +138,7 @@ export default function VerifyEmailForm() {
             )}
           </Field>
 
+          {/* OTP Field */}
           <form.Field name="otp">
             {(field) => {
               const isInvalid =
@@ -144,7 +167,7 @@ export default function VerifyEmailForm() {
                     aria-describedby={
                       isInvalid ? "verify-otp-error" : undefined
                     }
-                    className="h-12 rounded-xl border-slate-200 bg-slate-50/60 text-center font-mono text-xl tracking-[0.4em] focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20 md:text-xl"
+                    className="h-12 rounded-xl border-slate-200 bg-slate-50/60 text-center font-mono text-xl tracking-[0.4em] focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20"
                   />
 
                   {isInvalid && (
@@ -158,6 +181,7 @@ export default function VerifyEmailForm() {
             }}
           </form.Field>
 
+          {/* Submit Button */}
           <Button
             type="submit"
             disabled={isPending || !isValidEmail}
@@ -167,7 +191,7 @@ export default function VerifyEmailForm() {
             {isPending ? (
               <>
                 <Spinner className="size-4" />
-                Verifying email…
+                Verifying email...
               </>
             ) : (
               <>
@@ -179,6 +203,7 @@ export default function VerifyEmailForm() {
         </FieldGroup>
       </form>
 
+      {/* Login Link */}
       <p className="mt-6 text-center text-sm text-slate-500">
         Already verified?{" "}
         <Link
