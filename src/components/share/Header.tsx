@@ -26,6 +26,8 @@ const routes = [
   { name: "Home", url: "/" },
   { name: "About us", url: "/about-us" },
   { name: "Contact", url: "/contact" },
+  { name: "Apply Driver", url: "/driver-apply" },
+  { name: "Register", url: "/register" },
 ];
 
 export default function Header() {

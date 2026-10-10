@@ -9,6 +9,7 @@ import DashboardSidebar from "@/components/share/DashboardSidebar";
 import { Spinner } from "@/components/ui/spinner";
 import { useGetMe } from "@/hooks/auth.hook";
 import { getDashboardRoute } from "@/lib/utils";
+import AccountCheckingScreen from "@/components/share/AccountCheckingScreen";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -36,12 +37,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   if (isLoading || !data) {
     return (
-      <div className="flex min-h-svh items-center justify-center bg-slate-50">
-        <div className="flex items-center gap-3 text-sm text-slate-500">
-          <Spinner className="size-5 text-emerald-700" />
-          Checking your account…
-        </div>
-      </div>
+       <AccountCheckingScreen />
     );
   }
 
